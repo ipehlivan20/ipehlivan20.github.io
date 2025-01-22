@@ -1,0 +1,287 @@
+import numpy as np
+
+np.seterr(divide='ignore')
+
+M = 99999999999
+
+pi = str(input("Enter max if Maximize, min if Minimize (max,min): "))
+
+n = int(input("Number of constraints: "))
+
+m = int(input("Number of variable: "))
+
+kaka = 0
+p = []
+for i in range(n):
+    p = np.append(p,(input('Type of Constraint {} (<=,>=,=)= '.format(kaka+1))))
+    kaka = kaka + 1
+
+cn = []
+ula=0
+for i in range(m):
+    cn = np.append(cn,int(input('Objective Function coefficient for x{}= '.format(ula+1))))
+    ula = ula+1
+if pi == "min":
+    cn = cn*-1
+
+
+new_n = n
+
+for i in range(n):
+    if p[i]=="=" or p[i]==">=":
+        new_n = new_n + 1
+
+    
+yaya=0
+old_N = []
+for i in range(n):
+    dada=0
+    for i in range(m):
+        if n == yaya and m == dada:
+            break
+        else:
+            old_N = np.append(old_N,int(input('Coefficient of x%s for Constraint %s = '%(dada+1,yaya+1))))
+        dada = dada+1
+    yaya = yaya+1
+
+N = old_N.reshape(n,m)
+
+
+
+
+lala = 0
+b = []
+while lala!=n:
+    b = np.append(b,int(input('RHS of Constraint {}= '.format(lala+1))))
+    lala = lala + 1
+    
+
+
+ww = [pi]
+ww = np.append(ww,":")
+print("Our problem is;")
+for i in range(m):
+    ww = np.append(ww,(cn[i],'x{}'.format(i+1)))
+print(str(ww))
+print("Subject to")
+
+
+for i in range(n):
+    dd = []
+    for j in range(m):
+        dd = np.append(dd,(N[i][j],'x{}'.format(j+1)))
+    dd = np.append(dd,p[i])
+    dd = np.append(dd,b[i])
+    print(dd)
+
+
+cou = 0
+
+for i in range(n):
+    if p[i]==">=":
+        cou = cou + 1
+        
+
+count2=0
+za = np.empty(n)
+for i in range(n):
+    ek = np.zeros(n)
+    if p[i]==">=":
+        ek[count2]= -1
+        za = np.column_stack((za, ek))
+        count2 = count2 + 1
+        continue
+#        for i in range(n):
+#            if p[i] =="=":
+#                ek = np.append(ek,1)
+#        ek = np.vstack(ek)
+        
+    else:
+        count2 = count2 + 1 
+        continue
+if np.any(p == ">="):
+    za = za[:,1:]
+    N = np.column_stack((N, za))
+        
+slack = 0
+cb = np.zeros(n)
+for i in range(n):
+    if p[i]== ">="or p[i]=="=":
+#        cb[i] = -M
+        slack = slack +1
+    else:
+        continue
+        
+    
+#for i in range(n):
+#    if p[i]== "=" or p[i]==">=":
+#        cb = np.append(cb,0)
+#        slack = slack +1
+
+
+count=0
+for i in range(n):
+    if p[i]==">=" or p[i]=="=":
+        count = count+1
+        break
+
+
+#or p[i]=="="
+ccount=0
+
+for i in range(n):
+    if p[i]==">=":
+        ccount = ccount + 1
+        break
+        
+for i in range(n):
+    if p[i]=="=":
+        ccount = ccount + 1
+        break
+        
+
+
+neww = np.zeros(len(N[0]))
+
+for i in range(n):
+    if p[i]==">=" or  p[i]=="=":
+        neww = neww+ N[i]
+        
+if np.any(p == ">=") or np.any(p == "="):
+    N = np.vstack([N, -1*neww])
+        
+bbbb = 0
+    
+for i in range(n):
+    if p[i]==">=" or p[i]=="=":
+        bbbb = bbbb+ b[i]
+        
+if np.any(p == ">=") or np.any(p == "="):
+    
+    b = np.append(b, -1*bbbb)
+    
+    b = np.vstack(b)
+
+
+        
+
+cn = np.append(cn,np.zeros(len(N[0])-m))
+b0 = np.eye(len(N))
+b00 = np.eye(len(N))
+cb = np.zeros(len(N))
+
+NB = []
+for i in range(len(cn)):
+    NB = np.append(NB,['x{}'.format(i+1)])
+
+BV = []
+for i in range(len(cb)):
+    BV = np.append(BV,['x{}'.format(i+len(cn)+1)])
+    
+
+
+
+xb = b0 @ b
+z = cb @ xb 
+w = cb @ b0
+most = (w @ N)- cn
+ent = np.amin(most)
+ite = 0
+while ent <0:
+    x = most.argmin()#kaçıncı sütun
+
+    y2 = b0 @ N[:,x:x+1]
+    
+    y2 = np.hstack(y2)
+    
+    xb = np.hstack(xb)
+
+    boundcheck = np.array([i for i in xb/y2])
+        
+
+    for i in range(len(boundcheck)):
+        if boundcheck[i] == float("inf"):
+            boundcheck[i] = -99999999999999999
+        else:
+            continue
+            
+
+    if np.all(boundcheck >0) == True:
+        piv = np.where(xb/y2 > 0, xb/y2, np.inf).argmin() #pivot index (kaçıncı satır)
+        #print(piv)
+    else:
+        if np.all(boundcheck<0) == True:
+            print("Unbounded")
+            break
+        elif np.any(boundcheck== float("inf")) == True:
+            print("Unbounded")
+            break
+        else:
+            piv = np.where(xb/y2 > 0, xb/y2, np.inf).argmin() #pivot index (kaçıncı satır)
+
+            
+    
+    yy = np.array(b00[:, piv])
+    uu = np.array(N[:, x])
+    N[:, x] = yy
+    b00[:, piv] = uu
+    nu = (-1/y2[piv])*y2 
+    nu[piv] =  1/ y2[piv]
+    E = np.eye(len(N))
+    E[:, piv] = nu.transpose()
+    b0 = E @ b0 
+    r = BV[piv]
+    ee = NB[x]
+    BV[piv] = ee
+    NB[x] = r
+    a = cb[piv]
+    bb = cn[x]
+    cb[piv] =bb
+    cn[x] = a
+    xb = b0 @ b
+    z = cb @ xb
+    w = cb @ b0
+    most = (w @ N)- cn
+    ent = np.amin(most)
+    ite = ite + 1
+
+    if ent == 0:
+        
+        xb = np.hstack(xb)
+        
+        if pi == "max":
+            if z>0:
+                print("Multiple optimal solution.")
+                print("Optimal Solution =", z)
+                for i in range(len(cb)):
+                    print(BV[i],"=",xb[i])
+                print("There are",ite,"iteration.")
+            else:
+                print("No optimal solution(infeasible).")
+        elif pi == "min":
+            if z<0:
+                z = z*-1
+            print("There are multiple optimal solution.")
+            print("Optimal Solution =", z*1)
+            for i in range(len(cb)):
+                print(BV[i],"=",xb[i])
+            print("There are",ite,"iteration.")
+                
+    elif ent>0:
+        if pi == "max":
+            if z>0:
+                print("Optimal Solution =", z)
+                for i in range(len(cb)):
+                    print(BV[i],"=",xb[i])
+                print("There are",ite,"iteration.")
+            else:
+                print("No optimal solution(infeasible).")
+        elif pi == "min":
+            if z<0:
+                z = z*-1
+            print("Optimal Solution is = ", z)
+            for i in range(len(cb)):
+                print(BV[i],"=",xb[i])
+            print("There are",ite,"iteration.")
+
+            
