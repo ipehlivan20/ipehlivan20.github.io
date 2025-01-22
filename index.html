@@ -1,0 +1,65 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İpek Pehlivan</title>
+</head>
+<body>
+    <h1>Linear Programming Solver</h1>
+    <form id="solveForm">
+        <label for="pi">Maximize or Minimize (max/min):</label>
+        <input type="text" id="pi" name="pi" required><br><br>
+
+        <label for="n">Number of Constraints:</label>
+        <input type="number" id="n" name="n" required><br><br>
+
+        <label for="m">Number of Variables:</label>
+        <input type="number" id="m" name="m" required><br><br>
+
+        <label for="p">Constraint Types (comma-separated, e.g., "<=,>=,="):</label>
+        <input type="text" id="p" name="p" required><br><br>
+
+        <label for="cn">Objective Function Coefficients (comma-separated):</label>
+        <input type="text" id="cn" name="cn" required><br><br>
+
+        <label for="N">Constraint Coefficients (comma-separated, row by row):</label>
+        <input type="text" id="N" name="N" required><br><br>
+
+        <label for="b">RHS Values (comma-separated):</label>
+        <input type="text" id="b" name="b" required><br><br>
+
+        <button type="submit">Solve</button>
+    </form>
+
+    <h2>Result:</h2>
+    <pre id="result"></pre>
+
+    <script>
+        document.getElementById('solveForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData(e.target);
+            const data = {
+                pi: formData.get('pi'),
+                n: formData.get('n'),
+                m: formData.get('m'),
+                p: formData.get('p').split(','),
+                cn: formData.get('cn').split(',').map(Number),
+                N: formData.get('N').split(',').map(Number),
+                b: formData.get('b').split(',').map(Number)
+            };
+
+            const response = await fetch('/solve', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            document.getElementById('result').innerText = JSON.stringify(result, null, 2);
+        });
+    </script>
+</body>
+</html>
